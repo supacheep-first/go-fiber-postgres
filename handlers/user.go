@@ -3,6 +3,7 @@ package handlers
 import (
 	"fiber-postgre/database"
 	"fiber-postgre/models"
+	"fiber-postgre/validators"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -27,6 +28,9 @@ func CreateUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(user); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
+	if err := validators.Validate.Struct(user); err != nil {
+		return c.Status(422).JSON(fiber.Map{"validation_error": err.Error()})
+	}
 	database.DB.Create(user)
 	return c.Status(201).JSON(user)
 }
@@ -41,6 +45,9 @@ func UpdateUser(c *fiber.Ctx) error {
 	updateData := new(models.User)
 	if err := c.BodyParser(updateData); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+	if err := validators.Validate.Struct(updateData); err != nil {
+		return c.Status(422).JSON(fiber.Map{"validation_error": err.Error()})
 	}
 
 	user.Name = updateData.Name
